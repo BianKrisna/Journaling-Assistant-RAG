@@ -2,11 +2,63 @@ import streamlit as st
 import os
 import tempfile
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.documents import Document
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
+from langchain_community.vectorstores import FAISS
+
+#setup configuration
+st.set_page_config(page_title="Journal Assistant", layout="wide")
+st.title("Journaling Assistant with Citation")
+
+#process pdf function
+def process_pdf(uploaded_file):
+    all_docs = []
+    progress_text = "Reading Files..."
+    loading_bar = st.progress(0, progress_text)
+    total_files = len(uploaded_file)
+
+    for i, file in enumerate(uploaded_file):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+            temp_file.write(file.read())
+            temp_path = temp_file.name
+        
+        loader = PyPDFLoader(temp_path)
+        docs = loader.load()
+
+        for doc in docs:
+            doc.metadata["source"] = file.name
+            all_docs.extend(doc)
+
+            os.remove(temp_path)
+            loading_bar.progress(i+1/total_files, text=f"Reading file {file.name}")
+    
+    #split text
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    final_docs = text_splitter.split_documents(all_docs)
+
+    #creating vector database
+    loading_bar.progress(0.9, text="Embedding process..")
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    vector_db = FAISS.from_documents(final_docs, embeddings)
+
+    loading_bar.empty()
+    return vector_db
+
+with st.sidebar:
+    st.header("Settings")
+    api_key = st.text_input("Google Api Key", type="password")
+    uploaded_file = st.file_uploader("Upload PDFs", type="pdf", accept_multiple_files=True)
+
+    if st.button("Process file"):
+        if not api_key:
+            st.error("Input Api Key!")
+        elif not uploaded_file:
+            st.error("Input File!")
+        else:
+            st.write("Reading documents...")
+            st.session_state["vectordb"] = process_pdf(uploaded_file)
+            st.session_state["ready"] = True
+            st.success(f"Succes reading {len(uploaded_file)} file")
+
+#chat area
