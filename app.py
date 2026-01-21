@@ -84,7 +84,7 @@ if "ready" in st.session_state and st.session_state["ready"]:
                 context_window += doc.page_content + "\n\n"
                 file_name = doc.metadata.get("source", "unknown")
                 file_page = doc.metadata.get("page", 0) + 1
-                sources.append(f"**{file_name}** (page. {file_page}")
+                sources.append(f"**{file_name}** (page. {file_page})")
 
             prompt = f"""Act as an researcher,answer this question based on the given context.
                         if there are no matches context, answer "Information does not found!".
@@ -105,7 +105,7 @@ if "ready" in st.session_state and st.session_state["ready"]:
             st.markdown("---")
             st.markdown("Citation: ")
             for sc in set(sources):
-                st.markdown(f"- {sources}")
+                st.markdown(f"- {sc}")
 
 else:
     st.info("Please upload PDFs on the left bar!")
