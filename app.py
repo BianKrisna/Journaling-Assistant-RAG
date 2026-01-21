@@ -45,6 +45,7 @@ def process_pdf(uploaded_file):
     loading_bar.empty()
     return vector_db
 
+#sidebar
 with st.sidebar:
     st.header("Settings")
     api_key = st.text_input("Google Api Key", type="password")
@@ -62,3 +63,47 @@ with st.sidebar:
             st.success(f"Succes reading {len(uploaded_file)} file")
 
 #chat area
+if "ready" in st.session_state and st.session_state["ready"]:
+
+    question = st.text_input("Ask your question here!")
+
+    if question:
+        with st.chat_message("user"):
+            st.write(question)
+
+        with st.chat_message("ai"):
+            context_window = ""
+            sources = []
+
+            db = st.session_state["vectordb"]
+            docs = db.similarity_search(question, k=3)
+
+            for doc in docs:
+                context_window += doc.page_content + "\n\n"
+                file_name = doc.metadata.get("source", "unknown")
+                file_page = doc.metadata.get("page", 0) + 1
+                sources.append(f"**{file_name}** (page. {file_page}")
+
+            prompt = f"""Act as an researcher,answer this question based on the given context.
+                        if there are no matches context, answer "Information does not found!".
+
+                        Context: {context_window}
+
+                        Question: {question}
+                        """
+
+            llm = ChatGoogleGenerativeAI(
+                model = "models/gemini-2.5-flash",
+                temperature = 0,
+                api_key=api_key
+            )
+            response = llm.invoke(prompt)
+
+            st.markdown(response.content)
+            st.markdown("---")
+            st.markdown("Citation: ")
+            for sc in sources:
+                st.markdown(f"- {sources}")
+
+else:
+    st.info("Please upload PDFs on the left bar!")
