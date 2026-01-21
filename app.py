@@ -30,8 +30,8 @@ def process_pdf(uploaded_file):
             doc.metadata["source"] = file.name
             all_docs.extend(doc)
 
-            os.remove(temp_path)
-            loading_bar.progress(i+1/total_files, text=f"Reading file {file.name}")
+        os.remove(temp_path)
+        loading_bar.progress(i+1/total_files, text=f"Reading file {file.name}")
     
     #split text
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -57,10 +57,11 @@ with st.sidebar:
         elif not uploaded_file:
             st.error("Input File!")
         else:
-            st.write("Reading documents...")
-            st.session_state["vectordb"] = process_pdf(uploaded_file)
-            st.session_state["ready"] = True
-            st.success(f"Succes reading {len(uploaded_file)} file")
+            with st.spinner("Processing file"):
+                st.write("Reading documents...")
+                st.session_state["vectordb"] = process_pdf(uploaded_file)
+                st.session_state["ready"] = True
+                st.success(f"Succes reading {len(uploaded_file)} file")
 
 #chat area
 if "ready" in st.session_state and st.session_state["ready"]:
