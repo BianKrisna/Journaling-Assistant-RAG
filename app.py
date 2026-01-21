@@ -31,7 +31,7 @@ def process_pdf(uploaded_file):
             all_docs.extend(doc)
 
         os.remove(temp_path)
-        loading_bar.progress(i+1/total_files, text=f"Reading file {file.name}")
+        loading_bar.progress((i+1)/total_files, text=f"Reading file {file.name}")
     
     #split text
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
