@@ -28,7 +28,8 @@ def process_pdf(uploaded_file):
 
         for doc in docs:
             doc.metadata["source"] = file.name
-            all_docs.extend(doc)
+        
+        all_docs.extend(docs)
 
         os.remove(temp_path)
         loading_bar.progress((i+1)/total_files, text=f"Reading file {file.name}")
@@ -103,7 +104,7 @@ if "ready" in st.session_state and st.session_state["ready"]:
             st.markdown(response.content)
             st.markdown("---")
             st.markdown("Citation: ")
-            for sc in sources:
+            for sc in set(sources):
                 st.markdown(f"- {sources}")
 
 else:
