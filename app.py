@@ -102,10 +102,12 @@ if "ready" in st.session_state and st.session_state["ready"]:
             response = llm.invoke(prompt)
 
             st.markdown(response.content)
-            st.markdown("---")
-            st.markdown("Citation: ")
-            for sc in set(sources):
-                st.markdown(f"- {sc}")
+
+            if response.content != "Information does not found!":
+                st.markdown("---")
+                st.markdown("Citation: ")
+                for sc in set(sources):
+                    st.markdown(f"- {sc}")
 
 else:
     st.info("Please upload PDFs on the left bar!")
