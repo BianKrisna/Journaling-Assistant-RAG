@@ -67,7 +67,7 @@ with st.sidebar:
 #chat area
 if "ready" in st.session_state and st.session_state["ready"]:
 
-    question = st.text_input("Ask your question here!")
+    question = st.chat_input("Ask your question here!")
 
     if question:
         with st.chat_message("user"):
